@@ -1,10 +1,21 @@
 'use strict'
 
-const { stripHTML, prettyUrls, truncate } = require('hexo-util')
+const { truncateContent, postDesc } = require('../common/postDesc')
+const { prettyUrls } = require('hexo-util')
 const crypto = require('crypto')
+const moment = require('moment-timezone')
 
-hexo.extend.helper.register('truncate', (content, length) => {
-  return truncate(stripHTML(content), { length, separator: ' ' }).replace(/\n/g, ' ')
+hexo.extend.helper.register('getTimeZoneDate', date => {
+  // This is a hack method, because hexo treats time as UTC time
+  // so you need to manually convert the time zone
+  const utcDate = moment.utc(date).format('YYYY-MM-DD HH:mm:ss')
+  return moment.tz(utcDate, hexo.config.timezone).format('YYYY-MM-DD HH:mm:ss')
+})
+
+hexo.extend.helper.register('truncate', truncateContent)
+
+hexo.extend.helper.register('postDesc', data => {
+  return postDesc(data, hexo)
 })
 
 hexo.extend.helper.register('cloudTags', function (options = {}) {
@@ -82,7 +93,7 @@ hexo.extend.helper.register('getBgPath', path => {
 
   const absoluteUrlPattern = /^(?:[a-z][a-z\d+.-]*:)?\/\//i
   const relativeUrlPattern = /^(\.\/|\.\.\/|\/|[^/]+\/).*$/
-  const colorPattern = /^(#|rgb|rgba|hsl|hsla|linear-gradient|radial-gradient)/i
+  const colorPattern = /^(#|rgb|rgba|hsl|hsla)/i
 
   if (colorPattern.test(path)) {
     return `background-color: ${path};`
